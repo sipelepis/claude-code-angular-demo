@@ -19,16 +19,15 @@ jobs:
       (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')))
     runs-on: ubuntu-latest
     permissions:
-      contents: write        # Changed from 'read' to 'write' for creating PRs
-      pull-requests: write   # Changed from 'read' to 'write' for creating PRs
-      issues: write          # Changed from 'read' to 'write' for updating issues
+      contents: read
+      pull-requests: read
+      issues: read
       id-token: write
-      actions: read
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0     # Changed from 1 to 0 for full history access
+          fetch-depth: 1
 
       - name: Run Claude Code
         id: claude
@@ -36,70 +35,3 @@ jobs:
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
 
-          # Enhanced permissions for issue resolution
-          additional_permissions: |
-            actions: read
-            contents: write
-            pull-requests: write
-            issues: write
-
-          # Specify model for better code generation
-          model: "claude-sonnet-4-20250514"
-
-          # Allow Claude to run Angular/Node.js commands
-          allowed_tools: |
-            Bash(npm install)
-            Bash(npm run build)
-            Bash(npm run test)
-            Bash(npm run test:*)
-            Bash(npm run lint)
-            Bash(npm run lint:*)
-            Bash(ng generate *)
-            Bash(ng build)
-            Bash(ng test)
-            Git(add)
-            Git(commit)
-            Git(push)
-
-          # Custom instructions for Angular projects
-          custom_instructions: |
-            You are working on an Angular project. When implementing features:
-
-            ## Code Standards
-            - Use TypeScript for all new files
-            - Follow Angular style guide and best practices
-            - Use reactive forms for form handling
-            - Implement proper error handling
-            - Use OnPush change detection when appropriate
-            - Follow existing project structure and naming conventions
-
-            ## Implementation Guidelines
-            - Create components in appropriate feature modules
-            - Use services for business logic and API calls
-            - Implement proper type definitions
-            - Add unit tests for new components and services
-            - Update documentation when adding new features
-            - Use Angular Material or existing UI component library
-
-            ## Issue Resolution Process
-            - Read the issue description carefully
-            - Analyze existing codebase for patterns
-            - Implement the solution following project conventions
-            - Create comprehensive tests
-            - Update relevant documentation
-            - Create a PR with clear description of changes
-
-            ## Pull Request Guidelines
-            - Use conventional commit messages
-            - Include before/after screenshots for UI changes
-            - List breaking changes if any
-            - Reference the original issue number
-
-          # Set environment for Angular development
-          claude_env: |
-            NODE_ENV: development
-            NG_CLI_ANALYTICS: false
-
-          # Increase timeout for complex implementations
-          timeout_minutes: 15
-          max_turns: 5
