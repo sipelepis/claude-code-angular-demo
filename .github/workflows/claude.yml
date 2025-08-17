@@ -19,16 +19,16 @@ jobs:
       (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')))
     runs-on: ubuntu-latest
     permissions:
-      contents: write        # Changed from 'read' to 'write' for creating PRs
-      pull-requests: write   # Changed from 'read' to 'write' for creating PRs
-      issues: write          # Changed from 'read' to 'write' for updating issues
+      contents: read
+      pull-requests: read
+      issues: read
       id-token: write
-      actions: read
+      actions: read # Required for Claude to read CI results on PRs
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0     # Changed from 1 to 0 for full history access
+          fetch-depth: 1
 
       - name: Run Claude Code
         id: claude
@@ -36,19 +36,29 @@ jobs:
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
 
-          # Enhanced permissions for issue resolution
+          # This is an optional setting that allows Claude to read CI results on PRs
           additional_permissions: |
             actions: read
-            contents: write
-            pull-requests: write
-            issues: write
 
-          # Specify model for better code generation
-          model: "claude-sonnet-4-20250514"
+          # Optional: Specify model (defaults to Claude Sonnet 4, uncomment for Claude Opus 4.1)
+          # model: "claude-opus-4-1-20250805"
 
-          # Allow Claude to run Angular/Node.js commands
-          allowed_tools: |
-            Bash(npm install)
-            Bash(npm run build)
-            Bash(npm run test)
-            Bash(npm run test:*)
+          # Optional: Customize the trigger phrase (default: @claude)
+          # trigger_phrase: "/claude"
+
+          # Optional: Trigger when specific user is assigned to an issue
+          # assignee_trigger: "claude-bot"
+
+          # Optional: Allow Claude to run specific commands
+          # allowed_tools: "Bash(npm install),Bash(npm run build),Bash(npm run test:*),Bash(npm run lint:*)"
+
+          # Optional: Add custom instructions for Claude to customize its behavior for your project
+          # custom_instructions: |
+          #   Follow our coding standards
+          #   Ensure all new code has tests
+          #   Use TypeScript for new files
+
+          # Optional: Custom environment variables for Claude
+          # claude_env: |
+          #   NODE_ENV: test
+
